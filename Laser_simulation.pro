@@ -1,4 +1,4 @@
-QT       += core gui xml charts
+QT       += core gui xml charts 3dcore 3dextras 3drender
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,10 +11,12 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    paramdisplay.cpp \
     simulation.cpp
 
 HEADERS += \
     mainwindow.h \
+    paramdisplay.h \
     simulation.h
 
 FORMS += \

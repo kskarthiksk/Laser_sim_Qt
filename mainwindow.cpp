@@ -13,22 +13,30 @@
 #include<QString>
 #include<QCheckBox>
 #include "simulation.h"
+#include "paramdisplay.h"
 #include<math.h>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->tabWidget->setTabEnabled(4, false);
-    ui->tabWidget->setTabEnabled(5, false);
-    ui->tabWidget->setCurrentWidget(ui->tab_2);
+    ui->tabWidget->setTabEnabled(2, false);
+    ui->tabWidget->setTabEnabled(3, false);
+    ui->tabWidget->setCurrentWidget(ui->tab_7);
+    ui->tabWidget_2->setCurrentWidget(ui->tab_2);
 
     connect(ui->pushButtonReadXML, &QPushButton::clicked, this, &MainWindow::readFile);
     connect(ui->pushButtonWriteXML, &QPushButton::clicked, this, &MainWindow::writeFile);
     connect(ui->pushButtonRunSimulation, &QPushButton::clicked, this, &MainWindow::runSimulation);
     connect(ui->saturableAbsorber, &QCheckBox::clicked, this, &MainWindow::saturableAbsorber);
 
+
+    ParamDisplay disp(ui);
+
+    disp.changeCrystalLength();
+    // connect(ui->cavity_length, QOverload<double>::of(&QDoubleSpinBox::valueChanged), disp.changeCrystalLength);
 }
 
 MainWindow::~MainWindow()
@@ -163,8 +171,8 @@ void MainWindow::runSimulation()
     Simulation sim(ui);
     sim.simulate(ui->timeStep_mantissa->value() * pow(10, ui->timeStep_exponent->value()));
     ui->tabWidget->setCurrentWidget(ui->tab_5);
-    ui->tabWidget->setTabEnabled(4, true);
-    ui->tabWidget->setTabEnabled(5, true);
+    ui->tabWidget->setTabEnabled(2, true);
+    ui->tabWidget->setTabEnabled(3, true);
 }
 
 void MainWindow::saturableAbsorber()
