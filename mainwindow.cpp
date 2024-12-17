@@ -120,8 +120,6 @@ void MainWindow::runSimulation()
 {
     // QList<QDoubleSpinBox *> data_spinboxes = ui->tabWidget->findChildren<QDoubleSpinBox *>();
     Simulation sim(ui);
-    QMessageBox msgBox;
-    msgBox.setText("run");
-    msgBox.exec();
-    sim.simulate(1e7);
+    sim.simulate(ui->timeSteps->value());
+    ui->tabWidget->setCurrentWidget(ui->tab_5);
 }
