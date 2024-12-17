@@ -11,6 +11,7 @@
 #include<QDoubleSpinBox>
 #include<QMessageBox>
 #include<QString>
+#include<QCheckBox>
 #include "simulation.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButtonReadXML, &QPushButton::clicked, this, &MainWindow::readFile);
     connect(ui->pushButtonWriteXML, &QPushButton::clicked, this, &MainWindow::writeFile);
     connect(ui->pushButtonRunSimulation, &QPushButton::clicked, this, &MainWindow::runSimulation);
+    connect(ui->saturableAbsorber, &QCheckBox::clicked, this, &MainWindow::saturableAbsorber);
 
 }
 
@@ -76,6 +78,29 @@ void MainWindow::readFile()
         params = params.nextSibling();
     }
 
+    QDomNode saturable_absorber_data = device_data.nextSibling();
+    params = saturable_absorber_data.firstChild();
+    while(!params.isNull())
+    {
+        QDomElement e = params.toElement();
+        if(e.attribute(ui->saturableAbsorber->objectName()).toInt() == 2)
+        {
+            ui->saturableAbsorber->setChecked(true);
+            ui->gridGroupBox->setEnabled(true);
+            QList<QDoubleSpinBox *> saturable_absorber_spinboxes = ui->tab->findChildren<QDoubleSpinBox *>();
+            for(int i = 0; i < saturable_absorber_spinboxes.size(); ++i)
+            {
+                saturable_absorber_spinboxes[i]->setValue(e.attribute(saturable_absorber_spinboxes[i]->objectName()).toDouble());
+            }
+        }
+        else
+        {
+            ui->saturableAbsorber->setChecked(false);
+            ui->gridGroupBox->setEnabled(false);
+        }
+        params = params.nextSibling();
+    }
+
 }
 
 void MainWindow::writeFile()
@@ -105,6 +130,18 @@ void MainWindow::writeFile()
         device_data_default.setAttribute(device_data_spinboxes[i]->objectName(), device_data_spinboxes[i]->value());
     }
 
+    QDomElement saturable_absorber_data = doc.createElement("saturable_absorber_data");
+    laser_params.appendChild(saturable_absorber_data);
+    QDomElement saturable_absorber_default = doc.createElement("default");
+    saturable_absorber_data.appendChild(saturable_absorber_default);
+    saturable_absorber_default.setAttribute(ui->saturableAbsorber->objectName(), ui->saturableAbsorber->checkState());
+    if(ui->saturableAbsorber->isChecked())
+    {
+        QList<QDoubleSpinBox *> saturable_absorber_spinboxes = ui->tab->findChildren<QDoubleSpinBox *>();
+        for(int i = 0; i < saturable_absorber_spinboxes.size(); ++i)
+            saturable_absorber_default.setAttribute(saturable_absorber_spinboxes[i]->objectName(), saturable_absorber_spinboxes[i]->value());
+    }
+
     QString filePath = QFileDialog::getSaveFileName(this, "Save File", "", "XML files (*.xml)");
 
     QFile file(filePath);
@@ -122,4 +159,16 @@ void MainWindow::runSimulation()
     Simulation sim(ui);
     sim.simulate(ui->timeSteps->value());
     ui->tabWidget->setCurrentWidget(ui->tab_5);
+}
+
+void MainWindow::saturableAbsorber()
+{
+    if(ui->saturableAbsorber->isChecked())
+    {
+        ui->gridGroupBox->setEnabled(true);
+    }
+    else
+    {
+        ui->gridGroupBox->setEnabled(false);
+    }
 }

@@ -24,5 +24,6 @@ private slots:
     void readFile();
     void writeFile();
     void runSimulation();
+    void saturableAbsorber();
 };
 #endif // MAINWINDOW_H

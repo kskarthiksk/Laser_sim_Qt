@@ -28,7 +28,7 @@ private:
     // Device parameters
     float absorption;
     float cavity_diam;
-    float cavity_length;
+    float crystal_length;
     float init_photon_density;
     float pump_area_diam;
     float pump_power;
@@ -38,6 +38,14 @@ private:
     float t_round;
     float cavity_decay_time;
     float pump_rate;
+
+    // Saturable Absorber Parameters
+    float N_tot_sa;
+    float cross_ground;
+    float cross_excited;
+    float sa_decay_time;
+    float sa_length;
+    float n_sa;
 };
 
 #endif // SIMULATION_H

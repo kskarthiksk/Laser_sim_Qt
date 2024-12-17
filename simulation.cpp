@@ -27,17 +27,36 @@ Simulation::Simulation(Ui::MainWindow *ui)
 
     absorption = ui->absorption->value() / 100;
     cavity_diam = ui->cavity_diam->value() / 1000;
-    cavity_length = ui->cavity_length->value() / 1000;
+    crystal_length = ui->cavity_length->value() / 1000;
     init_photon_density = ui->init_photon_density->value() * 1e11;
     pump_area_diam = ui->pump_area_diam->value() / 1000;
     pump_power = ui->pump_power->value();
     r1 = ui->r1->value();
     r2 = ui->r2->value();
 
+    if(ui->saturableAbsorber->isChecked())
+    {
+        N_tot_sa = ui->sa_pop_density->value() * 1e23;
+        cross_ground = ui->sa_gr_cross->value() * 1e-22;
+        cross_excited = ui->sa_ex_cross->value() * 1e-23;
+        sa_decay_time = ui->sa_decay->value() * 1e-6;
+        sa_length = ui->sa_length->value() * 1e-3;
+        n_sa = ui->sa_refractive->value();
+    }
+    else
+    {
+        N_tot_sa = 0;
+        cross_ground = 0;
+        cross_excited = 0;
+        sa_decay_time = 0;
+        sa_length = 0;
+        n_sa = 0;
+    }
+
     N_0 = ion_density * percent_excited;
-    t_round = 2 * n_crystal * cavity_length / c;
+    t_round = 2 * (n_crystal * crystal_length + n_sa * sa_length) / c;
     cavity_decay_time = - t_round / log(r1 * r2);
-    pump_rate = pump_power * absorption / (M_PI * pow(pump_area_diam/2, 2) * cavity_length * h * c / pump_wl);
+    pump_rate = pump_power * absorption / (M_PI * pow(pump_area_diam/2, 2) * crystal_length * h * c / pump_wl);
 }
 
 void Simulation::simulate(int nIter)
@@ -46,9 +65,10 @@ void Simulation::simulate(int nIter)
     float N = N_0;
     float phi_old = init_photon_density;
     float phi = init_photon_density;
+    float N_sa = N_tot_sa;
     std::vector<float> phi_arr = {init_photon_density};
     std::vector<float> N_arr = {N_0};
-    // qDebug()<<eff_stim_cross_section;
+    std::vector<float> N_sa_arr = {N_tot_sa};
     float dt = t_round;
     // int eta = 1;
     int countIter = 0;
@@ -56,7 +76,10 @@ void Simulation::simulate(int nIter)
     while(countIter < nIter or N > ion_density)
     {
         N = (pump_rate * dt + N_old) / (1 + dt * (phi_old * eff_stim_cross_section * c - pow(upper_level_decay_time, -1)));
-        float gamma = N * eff_stim_cross_section * c - pow(cavity_decay_time, -1);
+        // float gamma = N * eff_stim_cross_section * c - pow(cavity_decay_time, -1);
+        float gamma = ((N * eff_stim_cross_section * 2 * crystal_length)
+                       - (2 * sa_length * cross_ground * N_sa)
+                       - (2 * sa_length * cross_excited * (N_tot_sa - N_sa))) / t_round - pow(cavity_decay_time, -1);
         if(gamma < 0)
             phi = phi_old / (1 - (dt * gamma));
         else
@@ -66,17 +89,23 @@ void Simulation::simulate(int nIter)
         ++countIter;
         phi_old = phi;
         N_old = N;
+
+        if(ui->saturableAbsorber->isChecked())
+        {
+            N_sa = (N_tot_sa * dt / sa_decay_time + N_sa) / (1 + dt * (phi * cross_ground * c + pow(sa_decay_time, -1)));
+            N_sa_arr.push_back((N_sa));
+        }
     }
     ui->phi_final->setValue(phi / 1e20);
-    qDebug()<<N<<" "<<phi;
+    // qDebug()<<N<<" "<<phi;
     // QMessageBox msgBox;
     // msgBox.setText(phi);
     // msgBox.exec();
-    ui->N_final->setValue(N / 1e20);
+    // ui->N_final->setValue(N / 1e20);
     // QMessageBox msgBox;
     // msgBox.setText(N);
     // msgBox.exec();
-    float intensity = ((phi * cavity_length) / t_round) * (1 - r1 * r2) * (h * c / laser_wl);
+    float intensity = ((phi * crystal_length) / t_round) * (1 - r1 * r2) * (h * c / laser_wl);
     float p_out = intensity * M_PI * pow(pump_area_diam / 2, 2);
     ui->op_power->setValue(p_out);
 
