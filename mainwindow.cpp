@@ -9,8 +9,9 @@
 #include<QFileDialog>
 #include<QList>
 #include<QDoubleSpinBox>
-//#include<QMessageBox>
+#include<QMessageBox>
 #include<QString>
+#include "simulation.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->pushButtonReadXML, &QPushButton::clicked, this, &MainWindow::readFile);
     connect(ui->pushButtonWriteXML, &QPushButton::clicked, this, &MainWindow::writeFile);
+    connect(ui->pushButtonRunSimulation, &QPushButton::clicked, this, &MainWindow::runSimulation);
 
 }
 
@@ -112,4 +114,14 @@ void MainWindow::writeFile()
         file.flush();
         file.close();
     }
+}
+
+void MainWindow::runSimulation()
+{
+    // QList<QDoubleSpinBox *> data_spinboxes = ui->tabWidget->findChildren<QDoubleSpinBox *>();
+    Simulation sim(ui);
+    QMessageBox msgBox;
+    msgBox.setText("run");
+    msgBox.exec();
+    sim.simulate(1e7);
 }

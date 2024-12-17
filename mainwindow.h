@@ -23,5 +23,6 @@ private:
 private slots:
     void readFile();
     void writeFile();
+    void runSimulation();
 };
 #endif // MAINWINDOW_H
