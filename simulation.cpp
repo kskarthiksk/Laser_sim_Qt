@@ -9,6 +9,7 @@
 #include<QLineSeries>
 #include<QLogValueAxis>
 #include<QValueAxis>
+#include<QWidget>
 
 namespace Ui {
 class MainWindow;
@@ -33,6 +34,7 @@ Simulation::Simulation(Ui::MainWindow *ui)
     pump_power = ui->pump_power->value();
     r1 = ui->r1->value();
     r2 = ui->r2->value();
+    cavity_loss = ui->cavityLoss->value()/100;
 
     if(ui->saturableAbsorber->isChecked())
     {
@@ -55,7 +57,7 @@ Simulation::Simulation(Ui::MainWindow *ui)
 
     N_0 = ion_density * percent_excited;
     t_round = 2 * (n_crystal * crystal_length + n_sa * sa_length) / c;
-    cavity_decay_time = - t_round / log(r1 * r2);
+    cavity_decay_time = - t_round / log(r1 * r2 * (1-cavity_loss));
     pump_rate = pump_power * absorption / (M_PI * pow(pump_area_diam/2, 2) * crystal_length * h * c / pump_wl);
 }
 
@@ -101,7 +103,7 @@ void Simulation::simulate(int nIter)
     // QMessageBox msgBox;
     // msgBox.setText(phi);
     // msgBox.exec();
-    // ui->N_final->setValue(N / 1e20);
+    ui->N_final->setValue(N / 1e20);
     // QMessageBox msgBox;
     // msgBox.setText(N);
     // msgBox.exec();
@@ -121,14 +123,15 @@ void Simulation::simulate(int nIter)
     photon_chart->addSeries(photon_density_series);
     auto axisX1 = new QValueAxis;
     photon_chart->addAxis(axisX1, Qt::AlignBottom);
-    axisX1->setLabelFormat("%11.2e");
+    axisX1->setLabelFormat("%1.2e");
     axisX1->setTitleText("Timesteps");
 
     auto axisY1 = new QLogValueAxis;
     photon_chart->addAxis(axisY1, Qt::AlignLeft);
     axisY1->setBase(10.0);
-    axisY1->setLabelFormat("%11.2e");
+    axisY1->setLabelFormat("%1.2e");
     axisY1->setTitleText("Photon Density");
+    axisY1->setTruncateLabels(false);
 
     photon_density_series->attachAxis(axisX1);
     photon_density_series->attachAxis(axisY1);
@@ -140,16 +143,21 @@ void Simulation::simulate(int nIter)
     pop_inv_chart->addSeries(pop_inv_series);
     auto axisX2 = new QValueAxis;
     pop_inv_chart->addAxis(axisX2, Qt::AlignBottom);
-    axisX2->setLabelFormat("%11.2e");
+    axisX2->setLabelFormat("%1.2e");
     axisX2->setTitleText("Timesteps");
     pop_inv_series->attachAxis(axisX2);
 
     auto axisY2 = new QLogValueAxis;
     pop_inv_chart->addAxis(axisY2, Qt::AlignLeft);
     axisY2->setBase(10.0);
-    axisY2->setLabelFormat("%11.2e");
-    axisY2->setTitleText("Timesteps");
+    axisY2->setLabelFormat("%1.2e");
+    axisY2->setTitleText("Population Inversion Density");
+    axisY2->setTruncateLabels(false);
+    axisY2->setMinorTickCount(-1);
     pop_inv_series->attachAxis(axisY2);
+    // qDebug()<<log10(axisY2->max())<<log10(axisY2->min());
+    axisY2->setMax(pow(10, ceil(log10(axisY2->max()))));
+    axisY2->setMin(pow(10, floor(log10(axisY2->min()))));
 
     pop_inv_chart->setTitle("Population Inversion");
     ui->PopDensityChartView->setChart(pop_inv_chart);

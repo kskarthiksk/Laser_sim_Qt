@@ -13,12 +13,16 @@
 #include<QString>
 #include<QCheckBox>
 #include "simulation.h"
+#include<math.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->tabWidget->setTabEnabled(4, false);
+    ui->tabWidget->setTabEnabled(5, false);
+    ui->tabWidget->setCurrentWidget(ui->tab_2);
 
     connect(ui->pushButtonReadXML, &QPushButton::clicked, this, &MainWindow::readFile);
     connect(ui->pushButtonWriteXML, &QPushButton::clicked, this, &MainWindow::writeFile);
@@ -86,7 +90,7 @@ void MainWindow::readFile()
         if(e.attribute(ui->saturableAbsorber->objectName()).toInt() == 2)
         {
             ui->saturableAbsorber->setChecked(true);
-            ui->gridGroupBox->setEnabled(true);
+            ui->frame->setEnabled(true);
             QList<QDoubleSpinBox *> saturable_absorber_spinboxes = ui->tab->findChildren<QDoubleSpinBox *>();
             for(int i = 0; i < saturable_absorber_spinboxes.size(); ++i)
             {
@@ -96,7 +100,7 @@ void MainWindow::readFile()
         else
         {
             ui->saturableAbsorber->setChecked(false);
-            ui->gridGroupBox->setEnabled(false);
+            ui->frame->setEnabled(false);
         }
         params = params.nextSibling();
     }
@@ -157,18 +161,20 @@ void MainWindow::runSimulation()
 {
     // QList<QDoubleSpinBox *> data_spinboxes = ui->tabWidget->findChildren<QDoubleSpinBox *>();
     Simulation sim(ui);
-    sim.simulate(ui->timeSteps->value());
+    sim.simulate(ui->timeStep_mantissa->value() * pow(10, ui->timeStep_exponent->value()));
     ui->tabWidget->setCurrentWidget(ui->tab_5);
+    ui->tabWidget->setTabEnabled(4, true);
+    ui->tabWidget->setTabEnabled(5, true);
 }
 
 void MainWindow::saturableAbsorber()
 {
     if(ui->saturableAbsorber->isChecked())
     {
-        ui->gridGroupBox->setEnabled(true);
+        ui->frame->setEnabled(true);
     }
     else
     {
-        ui->gridGroupBox->setEnabled(false);
+        ui->frame->setEnabled(false);
     }
 }

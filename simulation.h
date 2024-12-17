@@ -38,6 +38,7 @@ private:
     float t_round;
     float cavity_decay_time;
     float pump_rate;
+    float cavity_loss;
 
     // Saturable Absorber Parameters
     float N_tot_sa;
