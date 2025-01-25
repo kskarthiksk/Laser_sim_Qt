@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "paramdisplay.h"
+#include <Qt3DRender>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,6 +21,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    ParamDisplay *disp;
 
 private slots:
     void readFile();
